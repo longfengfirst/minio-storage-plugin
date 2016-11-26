@@ -34,8 +34,6 @@
       <url>http://www.apache.org/licenses/</url>
     </license>
   </licenses>
-
-  <!-- If you want this to appear on the wiki page:
   <developers>
     <developer>
       <id>Minio</id>
@@ -43,14 +41,11 @@
       <email>hello@minio.io</email>
     </developer>
   </developers>
-  -->
-  <!-- Assuming you want to host on @jenkinsci:
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-    <url>http://github.com/jenkinsci/${project.artifactId}-plugin</url>
+    <connection>scm:git:git://github.com/jenkinsci/minio-storage-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/minio-storage-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/minio-storage-plugin/</url>
   </scm>
-   -->
   <repositories>
     <repository>
       <id>repo.jenkins-ci.org</id>
@@ -63,13 +58,12 @@
       <url>https://repo.jenkins-ci.org/public/</url>
     </pluginRepository>
   </pluginRepositories>
-
   <dependencies>
-  	<dependency>
+    <dependency>
       <groupId>io.minio</groupId>
-  		<artifactId>minio</artifactId>
-  		<version>1.0.1</version>
-  	</dependency>
+  	<artifactId>minio</artifactId>
+  	<version>1.0.1</version>
+    </dependency>
   </dependencies>
 
 
