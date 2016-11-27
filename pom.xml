@@ -23,7 +23,7 @@
 
 	<artifactId>minio-storage</artifactId>
 	<packaging>hpi</packaging>
-	<version>0.0.1</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<name>Minio Storage</name>
 	<description>Uploads Jenkins build artifacts to a Minio server</description>
 	<url>https://wiki.jenkins-ci.org/display/JENKINS/Minio+Storage+Plugin</url>
@@ -57,7 +57,7 @@
 		<connection>scm:git:ssh://github.com/jenkinsci/minio-storage-plugin.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/minio-storage-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/minio-storage-plugin/</url>
-    <tag>minio-storage-0.0.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
 	<repositories>
