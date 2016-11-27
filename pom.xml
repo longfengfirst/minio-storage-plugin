@@ -55,7 +55,7 @@
 
 	<scm>
 		<connection>scm:git:ssh://github.com/jenkinsci/minio-storage-plugin.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com:jenkinsci/minio-storage-plugin.git</developerConnection>
+		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/minio-storage-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/minio-storage-plugin/</url>
 		<tag>HEAD</tag>
 	</scm>
