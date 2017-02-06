@@ -20,13 +20,13 @@
   -->
   
 	<f:section title="Minio upload configuration">
-	  <f:entry title="Minio Server URL" field="serverURL" help="/src/main/resources/org/jenkinsci/plugins/minio/MinioUploader/help-MinioURL.html">
+	  <f:entry title="Minio Server URL" field="serverURL" help="/plugin/minio-storage/help-MinioURL.html">
 	    <f:textbox />
 	  </f:entry>
-	  <f:entry title="Access Key" field="accessKey" help="/src/main/resources/org/jenkinsci/plugins/minio/MinioUploader/help-AccessKey.html">
+	  <f:entry title="Access Key" field="accessKey" help="/plugin/minio-storage/help-AccessKey.html">
 	    <f:textbox />
 	  </f:entry>
-	  <f:entry title="Secret Key" type="password" field="secretKey" help="/src/main/resources/org/jenkinsci/plugins/minio/MinioUploader/help-SecretKey.html">
+	  <f:entry title="Secret Key" type="password" field="secretKey" help="/plugin/minio-storage/help-SecretKey.html">
 	    <f:textbox />
 	  </f:entry>
 	</f:section>

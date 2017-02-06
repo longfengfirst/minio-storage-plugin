@@ -11,18 +11,16 @@
     When submitted, it will be passed to the corresponding constructor 
     parameter.
   -->
-
-	<f:entry title="Source" field="sourceFile" help="/src/main/resources/org/jenkinsci/plugins/minio/MinioUploader/help-sourceFile.html">
+	<f:entry title="Source" field="sourceFile" help="/plugin/minio-storage/help-sourceFile.html">
           <f:textbox/>
     </f:entry>
     <f:entry title="Exclude" field="excludedFile">
         <f:textbox/>
     </f:entry>
-    <f:entry title="Minio Bucket Name" field="bucketName" help="/src/main/resources/org/jenkinsci/plugins/minio/MinioUploader/help-bucket.html">
+    <f:entry title="Minio Bucket Name" field="bucketName" help="/plugin/minio-storage/help-bucket.html">
 		<f:textbox />
 	</f:entry>
 	<f:entry title="Object Name Prefix" field="objectNamePrefix">
         <f:textbox/>
     </f:entry>
-	 
 </j:jelly>
