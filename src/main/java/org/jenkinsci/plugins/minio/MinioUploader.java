@@ -137,60 +137,69 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 			return;
 		}
 
+		if (Result.FAILURE.equals(run.getResult())) {
+			// build failed. don't upload
+			log(console,"Skipping publishing on Minio because build failed");
+			return;
+		}
+		
 		try {
+			// Get the environment variables - sourceFile to upload, file to not upload
 			final Map<String, String> envVars = run.getEnvironment(listener);
-			boolean bucketFound = false;
-
+			
 			MinioClient minioClient = getMinioClient();
-
-			if (Result.FAILURE.equals(run.getResult())) {
-				// build failed. don't upload
-				log(console,
-						"Skipping publishing on Minio because build failed");
-			}
 
 			final String expanded = Util.replaceMacro(sourceFile, envVars);
 			final String exclude = Util.replaceMacro(excludedFile, envVars);
 
+			// If no files matching, throw IOException
 			if (expanded == null) {
 				throw new IOException();
 			}
 
-			bucketFound = minioClient.bucketExists(bucketName);
+			// Check if bucket already exists
+			boolean bucketFound = minioClient.bucketExists(bucketName);
+			
 			// If bucket not present, create bucket
 			if (!bucketFound) {
 				minioClient.makeBucket(bucketName);
 			}
-
+			
+			// For each of the file paths provided by the user
 			for (String startPath : expanded.split(",")) {
+				// Find the files matching the path
 				for (FilePath path : ws.list(startPath, exclude)) {
+					
+					// Throw IOException if the path is a directory
 					if (path.isDirectory()) {
 						throw new IOException(path + " is a directory");
 					}
 
-					final int workspacePath = FileHelper.getSearchPathLength(
+					// Get the search path length
+					final int searchPathLength = FileHelper.getSearchPathLength(
 							ws.getRemote(), startPath.trim());
 
-					String fileName = getFilename(path, workspacePath);
-					long size = path.length();
+					// Get the exact filename to be uploaded
+					String fileName = getFilename(path, searchPathLength);
 					String objectName;
 
-					if (objectNamePrefix != null
-							|| !(("").equals(objectNamePrefix))) {
+					// Check if a prefix is setup, append to the filename
+					if ((objectNamePrefix != null)
+							&& !(objectNamePrefix.isEmpty())) {
 						objectName = objectNamePrefix + "_" + fileName;
 					} else {
 						objectName = fileName;
 					}
 					
-					// Method for uploading the  file from slave/master.
+					// upload the file from slave/master.
 					path.act(new MinioAllPathUploader(minioClient, bucketName,
 							path, objectName, listener));
-					log(console, "File " + fileName
+					
+					log(console, "\nFile " + fileName
 							+ ", is uploaded to bucket " + bucketName);
 
 				}
 			}
-
 		} catch (InvalidKeyException | InvalidBucketNameException
 				| NoSuchAlgorithmException | InsufficientDataException
 				| NoResponseException | ErrorResponseException
