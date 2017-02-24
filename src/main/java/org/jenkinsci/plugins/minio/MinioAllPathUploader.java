@@ -43,7 +43,7 @@ public class MinioAllPathUploader implements FileCallable<Void> {
 	private static final long serialVersionUID = 1;
 
 	/**
-	 * Prefix to be added to the object name while.
+	 * Minioclient for the configured Minio Server
 	 */
 	private transient MinioClient minioClient;
 
@@ -79,14 +79,13 @@ public class MinioAllPathUploader implements FileCallable<Void> {
 
 	@Override
 	public void checkRoles(RoleChecker checker) throws SecurityException {
-
+		// not implemented
 	}
 
 	
 	/**
 	 * This method uses minioClient to upload the Object.
-	 * 
-	 * @return null
+	 * @return 
 	 */
 	@Override
 	public Void invoke(File f, VirtualChannel channel) throws IOException,
@@ -105,19 +104,14 @@ public class MinioAllPathUploader implements FileCallable<Void> {
 				| NoResponseException | ErrorResponseException
 				| InternalException | InvalidArgumentException
 				| XmlPullParserException e) {
-			e.printStackTrace(listener
-					.error("Minio error, failed to upload files"));
-			// run.setResult(Result.UNSTABLE);
+			e.printStackTrace(listener.error("Minio error, failed to upload files"));
 		} catch (IOException e) {
-			e.printStackTrace(listener
-					.error("Communication error, failed to upload files"));
-			// run.setResult(Result.UNSTABLE);
+			e.printStackTrace(listener.error("Communication error, failed to upload files"));
 		} finally {
 			if (stream != null)
 				stream.close();
 		}
 		return null;
-
 	}
 
 }
