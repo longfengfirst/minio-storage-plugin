@@ -40,6 +40,7 @@ import io.minio.errors.InvalidBucketNameException;
 import io.minio.errors.InvalidEndpointException;
 import io.minio.errors.InvalidPortException;
 import io.minio.errors.NoResponseException;
+import io.minio.errors.RegionConflictException;
 
 /**
  * Sample {@link Builder}.
@@ -215,6 +216,9 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 			e.printStackTrace(listener
 					.error("Upload interrupted, failed to upload files"));
 			run.setResult(Result.UNSTABLE);
+		} catch (RegionConflictException e) {
+			e.printStackTrace(listener
+					.error("Upload interrupted, Minio server region conflict"));
 		}
 	}
 

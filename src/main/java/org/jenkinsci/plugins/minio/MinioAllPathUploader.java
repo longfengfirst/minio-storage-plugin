@@ -90,14 +90,13 @@ public class MinioAllPathUploader implements FileCallable<Void> {
 	@Override
 	public Void invoke(File f, VirtualChannel channel) throws IOException,
 			InterruptedException {
-		long size = path.length();
 		InputStream stream = null;
 
 		try {
 
 			stream = new FileInputStream(path.getRemote());
 			String contentType = "application/octet-stream";
-			minioClient.putObject(bucketName, fileName, stream, size,contentType);
+			minioClient.putObject(bucketName, path.getBaseName(), stream, contentType);
 
 		} catch (InvalidKeyException | InvalidBucketNameException
 				| NoSuchAlgorithmException | InsufficientDataException
