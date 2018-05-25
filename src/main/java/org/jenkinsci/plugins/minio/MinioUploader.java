@@ -37,8 +37,6 @@ import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
 import io.minio.errors.InvalidArgumentException;
 import io.minio.errors.InvalidBucketNameException;
-import io.minio.errors.InvalidEndpointException;
-import io.minio.errors.InvalidPortException;
 import io.minio.errors.NoResponseException;
 import io.minio.errors.RegionConflictException;
 
@@ -103,30 +101,6 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 				.getDisplayName()) + ' ' + message);
 	}
 
-	/**
-	 * This method creates and returns a MinioClient if not already created.
-	 * 
-	 * @return Returns the MinioClient object
-	 */
-	private MinioClient getMinioClient() {
-		String serverURL = getDescriptor().getServerURL();
-		String accessKey = getDescriptor().getAccessKey();
-		String secretKey = getDescriptor().getSecretKey();
-
-		if (minioClient == null) {
-			try {
-				minioClient = new MinioClient(serverURL, accessKey, secretKey);
-			} catch (InvalidEndpointException e) {
-				// Print the stack if invalid endpoint found
-				e.printStackTrace();
-			} catch (InvalidPortException e) {
-				// Print the stack if invalid endpoint port found
-				e.printStackTrace();
-			}
-		}
-		return minioClient;
-	}
-
 	@Override
 	public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath ws,
 			@Nonnull Launcher launcher, @Nonnull TaskListener listener) {
@@ -143,12 +117,18 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 			log(console,"Skipping publishing on Minio because build failed");
 			return;
 		}
-		
+
 		try {
 			// Get the environment variables - sourceFile to upload, file to not upload
 			final Map<String, String> envVars = run.getEnvironment(listener);
-			
-			MinioClient minioClient = getMinioClient();
+
+			String serverURL = getDescriptor().getServerURL();
+			String accessKey = getDescriptor().getAccessKey();
+			String secretKey = getDescriptor().getSecretKey();
+			MinioClientFactory minioClientFactory = new MinioClientFactory(
+				serverURL, accessKey, secretKey
+			);
+			MinioClient minioClient = minioClientFactory.createClient();
 
 			final String expanded = Util.replaceMacro(sourceFile, envVars);
 			final String exclude = Util.replaceMacro(excludedFile, envVars);
@@ -160,17 +140,17 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 
 			// Check if bucket already exists
 			boolean bucketFound = minioClient.bucketExists(bucketName);
-			
+
 			// If bucket not present, create bucket
 			if (!bucketFound) {
 				minioClient.makeBucket(bucketName);
 			}
-			
+
 			// For each of the file paths provided by the user
 			for (String startPath : expanded.split(",")) {
 				// Find the files matching the path
 				for (FilePath path : ws.list(startPath, exclude)) {
-					
+
 					// Throw IOException if the path is a directory
 					if (path.isDirectory()) {
 						throw new IOException(path + " is a directory");
@@ -187,17 +167,22 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 					// Check if a prefix is setup, append to the filename
 					if ((objectNamePrefix != null)
 							&& !(objectNamePrefix.isEmpty())) {
-						objectName = objectNamePrefix + "_" + fileName;
+						String[] pathItems = fileName.split("/");
+						String name = pathItems[pathItems.length-1];
+						objectName = String.format("%s/%s", objectNamePrefix, name);
 					} else {
 						objectName = fileName;
 					}
-					
+
 					// upload the file from slave/master.
-					path.act(new MinioAllPathUploader(minioClient, bucketName,
+					path.act(new MinioAllPathUploader(minioClientFactory, bucketName,
 							path, objectName, listener));
-					
-					log(console, "\nFile " + fileName
-							+ ", is uploaded to bucket " + bucketName);
+
+					String msg = String.format(
+						"\nFile %s, is uploaded to bucket %s as %s",
+						fileName, bucketName, objectName
+					);
+					log(console, msg);
 
 				}
 			}
@@ -297,7 +282,7 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 
 		/**
 		 * This method returns server URL from global configuration.
-		 * 
+		 *
 		 * @return Returns the Minio Server URL
 		 */
 		public String getServerURL() {
@@ -306,7 +291,7 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 
 		/**
 		 * This method returns Access Key from global configuration.
-		 * 
+		 *
 		 * @return Returns the Access Key for Minio Server
 		 */
 		public String getAccessKey() {
@@ -315,7 +300,7 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 
 		/**
 		 * This method returns Secret Key from global configuration.
-		 * 
+		 *
 		 * @return Returns the Secret Key for Minio Server
 		 */
 		public String getSecretKey() {

@@ -33,7 +33,7 @@ import hudson.tasks.Builder;
  * <p>
  * When the user calls the act method, the invoke method is called
  * which in turn uploads the files using minioCLinet.
- * 
+ *
  * <p>
  * @author Ashish Sinha
  *
@@ -42,11 +42,7 @@ import hudson.tasks.Builder;
 public class MinioAllPathUploader implements FileCallable<Void> {
 	private static final long serialVersionUID = 1;
 
-	/**
-	 * Minioclient for the configured Minio Server
-	 */
-	private transient MinioClient minioClient;
-
+	private MinioClientFactory minioClientFactory;
 	/**
 	 * Bucket name to store the build artifacts.
 	 */
@@ -68,10 +64,10 @@ public class MinioAllPathUploader implements FileCallable<Void> {
 	TaskListener listener;
 
 	@DataBoundConstructor
-	public MinioAllPathUploader(MinioClient minioClient, String bucketName,
+	public MinioAllPathUploader(MinioClientFactory minioClientFactory, String bucketName,
 			FilePath path, String fileName, TaskListener listener) {
+		this.minioClientFactory = minioClientFactory;
 		this.bucketName = bucketName;
-		this.minioClient = minioClient;
 		this.path = path;
 		this.fileName = fileName;
 		this.listener = listener;
@@ -82,10 +78,10 @@ public class MinioAllPathUploader implements FileCallable<Void> {
 		// not implemented
 	}
 
-	
+
 	/**
 	 * This method uses minioClient to upload the Object.
-	 * @return 
+	 * @return
 	 */
 	@Override
 	public Void invoke(File f, VirtualChannel channel) throws IOException,
@@ -96,7 +92,8 @@ public class MinioAllPathUploader implements FileCallable<Void> {
 
 			stream = new FileInputStream(path.getRemote());
 			String contentType = "application/octet-stream";
-			minioClient.putObject(bucketName, path.getBaseName(), stream, contentType);
+			MinioClient minioClient = minioClientFactory.createClient();
+			minioClient.putObject(bucketName, fileName, stream, contentType);
 
 		} catch (InvalidKeyException | InvalidBucketNameException
 				| NoSuchAlgorithmException | InsufficientDataException
