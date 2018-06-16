@@ -40,22 +40,6 @@ import io.minio.errors.InvalidBucketNameException;
 import io.minio.errors.NoResponseException;
 import io.minio.errors.RegionConflictException;
 
-/**
- * Sample {@link Builder}.
- *
- * <p>
- * When the user configures the project and enables this builder,
- * {@link DescriptorImpl#newInstance(StaplerRequest)} is invoked and a new
- * {@link MinioUploader} is created. The created instance is persisted to the
- * project configuration XML by using XStream, so this allows you to use
- * instance fields to remember the configuration.
- *
- * <p>
- * When a build is performed, the {@link #perform} method will be invoked.
- *
- * @author Nitish Tiwari
- *
- */
 public final class MinioUploader extends Recorder implements SimpleBuildStep {
 
 	/**
@@ -85,11 +69,9 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 	 */
 	private MinioClient minioClient;
 
-	// Fields in config.jelly must match the parameter names in the
-	// "DataBoundConstructor"
+	// Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
 	@DataBoundConstructor
-	public MinioUploader(String sourceFile, String excludedFile,
-			String bucketName, String objectNamePrefix) {
+	public MinioUploader(String sourceFile, String excludedFile, String bucketName, String objectNamePrefix) {
 		this.sourceFile = sourceFile;
 		this.excludedFile = excludedFile;
 		this.bucketName = bucketName;
@@ -97,13 +79,12 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 	}
 
 	private void log(final PrintStream logger, final String message) {
-		logger.println(StringUtils.defaultString(getDescriptor()
-				.getDisplayName()) + ' ' + message);
+		logger.println(StringUtils.defaultString(getDescriptor().getDisplayName()) + ' ' + message);
 	}
 
 	@Override
-	public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath ws,
-			@Nonnull Launcher launcher, @Nonnull TaskListener listener) {
+	public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath ws, @Nonnull Launcher launcher,
+			@Nonnull TaskListener listener) {
 		final PrintStream console = listener.getLogger();
 
 		if (Result.ABORTED.equals(run.getResult())) {
@@ -114,20 +95,19 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 
 		if (Result.FAILURE.equals(run.getResult())) {
 			// build failed. don't upload
-			log(console,"Skipping publishing on Minio because build failed");
+			log(console, "Skipping publishing on Minio because build failed");
 			return;
 		}
 
 		try {
-			// Get the environment variables - sourceFile to upload, file to not upload
+			// Get the environment variables - sourceFile to upload, file to not
+			// upload
 			final Map<String, String> envVars = run.getEnvironment(listener);
 
 			String serverURL = getDescriptor().getServerURL();
 			String accessKey = getDescriptor().getAccessKey();
 			String secretKey = getDescriptor().getSecretKey();
-			MinioClientFactory minioClientFactory = new MinioClientFactory(
-				serverURL, accessKey, secretKey
-			);
+			MinioClientFactory minioClientFactory = new MinioClientFactory(serverURL, accessKey, secretKey);
 			MinioClient minioClient = minioClientFactory.createClient();
 
 			final String expanded = Util.replaceMacro(sourceFile, envVars);
@@ -157,61 +137,42 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 					}
 
 					// Get the search path length
-					final int searchPathLength = FileHelper.getSearchPathLength(
-							ws.getRemote(), startPath.trim());
+					final int searchPathLength = FileHelper.getSearchPathLength(ws.getRemote(), startPath.trim());
 
 					// Get the exact filename to be uploaded
-					String fileName = getFilename(path, searchPathLength);
+					String fileName = path.getName();
 					String objectName;
 
-					// Check if a prefix is setup, append to the filename
-					if ((objectNamePrefix != null)
-							&& !(objectNamePrefix.isEmpty())) {
+					// Check if a prefix is setup, prepend to the filename
+					if ((objectNamePrefix != null) && !(objectNamePrefix.isEmpty())) {
 						String[] pathItems = fileName.split("/");
-						String name = pathItems[pathItems.length-1];
+						String name = pathItems[pathItems.length - 1];
 						objectName = String.format("%s/%s", objectNamePrefix, name);
 					} else {
 						objectName = fileName;
 					}
 
 					// upload the file from slave/master.
-					path.act(new MinioAllPathUploader(minioClientFactory, bucketName,
-							path, objectName, listener));
+					path.act(new MinioAllPathUploader(minioClientFactory, bucketName, path, objectName, listener));
 
-					String msg = String.format(
-						"\nFile %s, is uploaded to bucket %s as %s",
-						fileName, bucketName, objectName
-					);
+					String msg = String.format("\nFile %s, is uploaded to bucket %s as %s", fileName, bucketName,
+							objectName);
 					log(console, msg);
-
 				}
 			}
-		} catch (InvalidKeyException | InvalidBucketNameException
-				| NoSuchAlgorithmException | InsufficientDataException
-				| NoResponseException | ErrorResponseException
-				| InternalException | XmlPullParserException e) {
-			e.printStackTrace(listener
-					.error("Minio error, failed to upload files"));
+		} catch (InvalidKeyException | InvalidBucketNameException | NoSuchAlgorithmException | InsufficientDataException
+				| NoResponseException | ErrorResponseException | InternalException | XmlPullParserException e) {
+			e.printStackTrace(listener.error("Minio error, failed to upload files"));
 			run.setResult(Result.UNSTABLE);
 		} catch (IOException e) {
-			e.printStackTrace(listener
-					.error("Communication error, failed to upload files"));
+			e.printStackTrace(listener.error("Communication error, failed to upload files"));
 			run.setResult(Result.UNSTABLE);
 		} catch (InterruptedException e) {
-			e.printStackTrace(listener
-					.error("Upload interrupted, failed to upload files"));
+			e.printStackTrace(listener.error("Upload interrupted, failed to upload files"));
 			run.setResult(Result.UNSTABLE);
 		} catch (RegionConflictException e) {
-			e.printStackTrace(listener
-					.error("Upload interrupted, Minio server region conflict"));
+			e.printStackTrace(listener.error("Upload interrupted, Minio server region conflict"));
 		}
-	}
-
-	private String getFilename(FilePath src, int searchIndex) {
-		final String fileName;
-		final String relativeFileName = src.getRemote();
-		fileName = relativeFileName.substring(searchIndex);
-		return fileName;
 	}
 
 	// Overridden for better type safety.
@@ -234,8 +195,7 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 	@Extension
 	// This indicates to Jenkins that this is an implementation of an extension
 	// point.
-	public static final class DescriptorImpl extends
-			BuildStepDescriptor<Publisher> {
+	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 		/**
 		 * To persist global configuration information, simply store it in a
 		 * field and call save().
@@ -268,8 +228,7 @@ public final class MinioUploader extends Recorder implements SimpleBuildStep {
 		}
 
 		@Override
-		public boolean configure(StaplerRequest req, JSONObject formData)
-				throws FormException {
+		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
 			// To persist global configuration information,
 			// set that to properties and call save().
 			serverURL = formData.getString("serverURL");

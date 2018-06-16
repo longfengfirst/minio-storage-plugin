@@ -27,18 +27,6 @@ import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.Builder;
 
-/**
- * Sample {@link Builder}.
- *
- * <p>
- * When the user calls the act method, the invoke method is called
- * which in turn uploads the files using minioCLinet.
- *
- * <p>
- * @author Ashish Sinha
- *
- */
-
 public class MinioAllPathUploader implements FileCallable<Void> {
 	private static final long serialVersionUID = 1;
 
@@ -54,12 +42,12 @@ public class MinioAllPathUploader implements FileCallable<Void> {
 	private FilePath path;
 
 	/**
-	 * The name of the file .
+	 * The name of the file.
 	 */
 	private String fileName;
 
 	/**
-	 * TaskListener listener needed for reading the exception.
+	 * TaskListener listener needed for reading exceptions.
 	 */
 	TaskListener listener;
 
@@ -78,23 +66,18 @@ public class MinioAllPathUploader implements FileCallable<Void> {
 		// not implemented
 	}
 
-
 	/**
-	 * This method uses minioClient to upload the Object.
-	 * @return
+	 * invoke uses minioClient to upload the Object.
 	 */
 	@Override
 	public Void invoke(File f, VirtualChannel channel) throws IOException,
 			InterruptedException {
 		InputStream stream = null;
-
 		try {
-
 			stream = new FileInputStream(path.getRemote());
 			String contentType = "application/octet-stream";
 			MinioClient minioClient = minioClientFactory.createClient();
 			minioClient.putObject(bucketName, fileName, stream, contentType);
-
 		} catch (InvalidKeyException | InvalidBucketNameException
 				| NoSuchAlgorithmException | InsufficientDataException
 				| NoResponseException | ErrorResponseException
@@ -109,5 +92,4 @@ public class MinioAllPathUploader implements FileCallable<Void> {
 		}
 		return null;
 	}
-
 }
